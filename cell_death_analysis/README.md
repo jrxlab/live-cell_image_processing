@@ -1,7 +1,5 @@
 # Image processing pipeline for Cell death analysis 
-**Author :** Asma Chalabi
-
-Developed in the [**Roux lab**](https://github.com/jrxlab)
+**Author :** Asma Chalabi, code developed in the [**Roux lab**](https://github.com/jrxlab)
 
 
 This pipeline allows the cell death time analysis, using multiple
