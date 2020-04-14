@@ -17,6 +17,8 @@ image processing methods.
 
 - analysis directory contains the death time analysis scripts.
 
+- extra directory contains some tested method scripts, these methods aren't used in the final pipeline.
+
 
 ### Dependencies :
 
