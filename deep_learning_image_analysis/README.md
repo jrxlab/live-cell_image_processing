@@ -13,6 +13,8 @@ It performs 3 different segmentations : cellular, nuclear and cytoplasmic using 
 the choice to use a trained model (transfer learning) or to train a new model, this flexibility will make it
 usable for different cell types.
 
+The cells are then classified into : sensitive, resistant and division using a Random forest model.
+
 ### The code is split into multiple scripts contained in different directories:
 
 **- run_parameters.py :**
@@ -44,6 +46,9 @@ usable for different cell types.
   Contains different scripts to save features of the different types that we can generate
   during the pipeline execution: frame, cell, nucleus, cytoplasm, ...
 
+**- cell_death directory :**
+
+  Contains a Random Forest training script for cell phenotypes classification. (under development)
 
 ## References :
 
