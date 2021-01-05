@@ -1,3 +1,7 @@
+#!/usr/bin/python3
+#-*- coding: utf-8 -*-
+
+
 import numpy as np_
 from typing import Tuple
 

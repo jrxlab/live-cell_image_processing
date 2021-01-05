@@ -1,5 +1,8 @@
+#!/usr/bin/python3
+#-*- coding: utf-8 -*-
+
 from model import unet_arch as unet
-from run_parameters import training_data_path, seg_data_path
+from run_parameters import training_img_path, training_masks_path,optimizer, loss, metrics, validation_split, batch_size, epochs
 import numpy as np_
 import itk
 from tensorflow import keras
@@ -11,7 +14,7 @@ def Import_data(frames_path, masks_path):
     print("Import raw frames ...")
     
     # Read input image
-    itk_image = itk.imread(training_data_path)
+    itk_image = itk.imread(frames_path)
     raw_frames = itk.array_from_image(itk_image).astype(np_.uint8)
     
     
@@ -38,12 +41,12 @@ def Import_data(frames_path, masks_path):
 
 def Train_model(channel:int, model_name: str):
     
-    raw_frames, masks = Import_data(training_data_path, seg_data_path)
+    raw_frames, masks = Import_data(training_img_path, training_masks_path)
     
     frame_shape=raw_frames[0].shape
     
     model= unet.get_unet(frame_shape[0],frame_shape[1],channel)
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=optimizer, loss=loss, metrics=[metrics ])
     
     print("fit model ...")
     
@@ -53,7 +56,7 @@ def Train_model(channel:int, model_name: str):
     history=model.fit(
       raw_frames,
       masks,
-      validation_split=0.2, batch_size=10, epochs=30, callbacks=callbacks)
+      validation_split=validation_split, batch_size=batch_size, epochs=epochs, callbacks=callbacks)
     
     model.save_weights(model_name+".h5")
     

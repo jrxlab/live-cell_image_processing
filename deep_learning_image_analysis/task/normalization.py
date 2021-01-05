@@ -1,3 +1,6 @@
+#!/usr/bin/python3
+#-*- coding: utf-8 -*-
+
 import matplotlib.pyplot as pl_
 import numpy as np_
 from scipy.signal import convolve2d

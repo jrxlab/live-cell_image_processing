@@ -1,3 +1,6 @@
+#!/usr/bin/python3
+#-*- coding: utf-8 -*-
+
 from __future__ import annotations
 from type.cell import cell_t
 import matplotlib.pyplot as pl_
@@ -16,7 +19,7 @@ class tracks_t(nx_.DiGraph): # create a graph
         TrackContainingCell method
         Return a subgraph with the weakly connected components (cells) as nodes.
         """
-    
+        
         for component in nx_.weakly_connected_components(self): # get the weakly connected components
         #for component in nx_.strongly_connected_components(self):
             if cell in component: # if the cell is in the weakly connected components
@@ -25,7 +28,7 @@ class tracks_t(nx_.DiGraph): # create a graph
         return None
 
 
-    def Plot(self, show_figure: bool = True) -> None:
+    def Plot(self,file:str, show_figure: bool = True) -> None:
         
         """
         Plot method
@@ -50,7 +53,7 @@ class tracks_t(nx_.DiGraph): # create a graph
         if show_figure:
             pl_.show()
         
-        if not os.path.exists("outputs/tracking"):
-            os.makedirs("outputs/tracking")
+        if not os.path.exists("output/"+str(file)+"/tracking"):
+            os.makedirs("output/"+str(file)+"/tracking")
             
-        pl_.savefig("outputs/tracking/tracks")
+        pl_.savefig("output/"+str(file)+"/tracking/tracks")

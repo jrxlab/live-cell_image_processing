@@ -1,11 +1,13 @@
+#!/usr/bin/python3
+#-*- coding: utf-8 -*-
+
 from __future__ import annotations
 from run_parameters import gray_rgb
 from type.cell import cell_t
 from type.nucleus import nucleus_t
 from type.cytoplasm import cytoplasm_t
-from task import segmentation as sg_
+from task import segmentation as sg_, feature 
 from run_parameters import segm_protocol
-from type import get_properties as props_
 import numpy as np_
 import skimage.feature as ft_
 import skimage.measure as ms_
@@ -22,9 +24,9 @@ class frame_t:
         self.time_point = -1  # 0 and up: time point of the frame
         self.size = None  # (height, width) of the frame
         self.contents = None  # numpy.ndarray of the frame contents
-        self.cells = None  # List of segmented cells
-        self.nuclei=None
-        self.cyto=None
+#        self.cells = None  # List of segmented cells
+#        self.nuclei=None
+#        self.cyto=None
         
     @classmethod
     def WithProperties(
@@ -50,7 +52,7 @@ class frame_t:
         
         """
         ClearContents method
-        To free memory up when all the cell properties are saved
+        To free some memory up when all the cell properties are saved
         """
         
         self.contents = None  # To free some memory up 
@@ -80,7 +82,7 @@ class frame_t:
         
 
 
-    def GetProperties (self,class_,segmentation_org: None):
+    def GetProperties (self,frames,class_,cell_channel,segmentation_org: None):
         
         if class_ == "cell" :
             type_= cell_t
@@ -97,7 +99,7 @@ class frame_t:
         for time_point,mask in enumerate(segmentation_org) :
             
             # Segmentation labeling and cell instantiations
-            labeled_sgm_org = mp_.label(mask, connectivity=1) #Label connected regions:
+            labeled_sgm_org = mp_.label(mask.T, connectivity=1)  #Label connected regions:
                                                                    #Two pixels are connected when they are neighbors 
                                                                    #and have the same value              
             props_org = ms_.regionprops(labeled_sgm_org) # measure properties of labeled image regions 
@@ -113,6 +115,18 @@ class frame_t:
                 
                 structure.features["area"] = prop.area # save the cell area in the features dictionary (see "cell" script)
                 
+                if class_== "cell":
+                    structure.features["bbox_area"]=prop.bbox_area
+                    structure.features["convex_area"]=prop.convex_area
+                    structure.features["eccentricity"]=prop.eccentricity
+                    structure.features["equivalent_diameter"]=prop.equivalent_diameter
+                    structure.features["major_axis_length"]=prop.major_axis_length
+                    structure.features["minor_axis_length"]=prop.minor_axis_length
+                    structure.features["perimeter"]=prop.perimeter
+                    structure.features["edge"]= np_.median(feature.Edginess(frames[cell_channel][time_point],
+                                      coords_org,prop.centroid))
+                    
+                
                 struct_list.append(structure)
                 
             if class_ == "cell" :
@@ -124,7 +138,7 @@ class frame_t:
                 self.nuclei.append(struct_list)
         
 
-    def SegmentObject(self,frames,cell_channel: None, nucl_channel: None, cyto_seg: str) -> None:
+    def SegmentObject(self,frames,cell_channel: None, nucl_channel: None, cyto_seg: str, file_name:str) -> None:
 
         """
         SegmentCells method
@@ -138,36 +152,34 @@ class frame_t:
         
         
         if method == "cell" and cell_channel != None:
-            print("cell")
             cell_channel=cell_channel.upper()
-            segmentation = sg_.CellSegmentation(frames[cell_channel],gray_rgb) # call the "CellSegmentation" fct from 
-            print(type(segmentation))                                                                             # "segmentation" script
-            frame_t.GetProperties(self,"cell",segmentation)                                                                                     
+            segmentation = sg_.CellSegmentation(frames[cell_channel],gray_rgb,file_name) # call the "CellSegmentation" fct from 
+                                                                                         # "segmentation" script
+            frame_t.GetProperties(self,frames,"cell",cell_channel,segmentation)                                                                                     
             
         elif method == "nucl" and nucl_channel != None:
             nucl_channel=nucl_channel.upper()
-            segmentation_org, segmentation_dil, segmentation_ero = sg_.NuclSegmentation(frames[nucl_channel],gray_rgb) # call the " NuclSegmentation" function from "segmentation script
-            frame_t.GetProperties(self,"nucl",segmentation_org) 
+            segmentation_org, segmentation_dil, segmentation_ero = sg_.NuclSegmentation(frames[nucl_channel],gray_rgb,file_name) # call the " NuclSegmentation" function from "segmentation script
+            frame_t.GetProperties(self,frames,"nucl",cell_channel,segmentation_org) 
            
             
         elif method == "cell and nucl" and cell_channel != None and nucl_channel != None :
             cell_channel=cell_channel.upper()
             nucl_channel=nucl_channel.upper()
             
-            print("cell_and_nucl")
             # cell seg
-            print(cell_channel)
-            cell_segmentation = sg_.CellSegmentation(frames[cell_channel],gray_rgb) 
-            frame_t.GetProperties(self,"cell",cell_segmentation)  
+            
+            cell_segmentation = sg_.CellSegmentation(frames[cell_channel],gray_rgb,file_name) 
+            frame_t.GetProperties(self,frames,"cell",cell_channel,cell_segmentation)  
             
             # nucl seg
-            segmentation_org, segmentation_dil, segmentation_ero = sg_.NuclSegmentation(frames[nucl_channel],gray_rgb) # call the " NuclSegmentation" function from "segmentation script
-            frame_t.GetProperties(self,"nucl",segmentation_org) 
+            segmentation_org, segmentation_dil, segmentation_ero = sg_.NuclSegmentation(frames[nucl_channel],gray_rgb,file_name) # call the " NuclSegmentation" function from "segmentation script
+            frame_t.GetProperties(self,frames,"nucl",cell_channel,segmentation_org) 
             
             if cyto_seg == "yes" :
                 #cyto seg
-                cyto_segmentation = sg_.CytoSegmentation(cell_segmentation,segmentation_dil) 
-                frame_t.GetProperties(self,"cyto",cyto_segmentation) 
+                cyto_segmentation = sg_.CytoSegmentation(cell_segmentation,segmentation_dil,file_name) 
+                frame_t.GetProperties(self,frames,"cyto",cell_channel,cyto_segmentation) 
                   
         else:
             raise ValueError(f"{method}: Invalid segmentation method")
@@ -176,22 +188,25 @@ class frame_t:
 
         
 
-    def CellPositions(self):
+    def CellPositions(self, cells):
         
         """
         CellPositions method
-        Calculates the position of the cell centroid
+        Puts the position of the cell centroid in the same vector 
         """
         
-        if self.cells is None:
+        if cells is None:
             raise RuntimeError(
                 "Segmentation-related function called before segmentation"
             )
 
-        positions = np_.empty((self.cells.__len__(), 2), dtype=np_.float64) # create an empty array
+        positions = np_.empty((cells.__len__(), 2), dtype=np_.float64) # create an empty array
 
-        for idx, cell in enumerate(self.cells):
-            positions[idx, :] = cell.position # get the position of the cell centroid in the frame 
+        for idx, cell in enumerate(cells):
+            
+                positions[idx, :] = cell.position # get the position of the cell centroid in the frame 
+                
+        
 
         return positions
     
