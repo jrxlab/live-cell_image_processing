@@ -21,6 +21,6 @@ Only cell segmentation is performed with this pipeline, the different cell inten
 
 This pipeline is based on machine learning approaches. By integrating a deep learning segmentation model (U-Net), the pipeline can manage 3 different segmentations : cellular, nuclear and cytoplasmic at the same time. The tracking is then performed,  the features of each structure and the signal intensities are extracted, and the statistics are then computed on the extracted signal (mean, median, ratio).  
 
-The cell phenotypes (sensitive, resistant, division) are then classified by using a Random Forest classifier trained on the cell features. This part is still under development to include cell death modality detection.
+The cell phenotypes (sensitive, resistant, division) are then classified by using a Random Forest classifier trained on the cell features. This part is under development to include cell death modality detection.
 
 
