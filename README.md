@@ -23,4 +23,4 @@ This pipeline is based on machine learning approaches. By integrating a deep lea
 
 The cell phenotypes (sensitive, resistant, division) are then classified by using a Random Forest classifier trained on the cell features. This part is still under development to include cell death modality detection.
 
--
+
