@@ -1,4 +1,4 @@
-# Cell-based pharmacodynamics toolset using deep learning image analysis 
+# Cell-based pharmacodynamics toolset using deep learning for image analysis 
 **Author :** Asma Chalabi, code developed in the [**Roux lab**](https://github.com/jrxlab) 
 
 
